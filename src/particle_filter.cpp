@@ -75,8 +75,8 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
           closest = predicted[j];
           min_distance = distance;
         }
-        observations[i] = closest;
       }
+      observations[i] = closest;
     }
 }
 
