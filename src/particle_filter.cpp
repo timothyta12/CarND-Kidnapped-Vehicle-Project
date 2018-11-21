@@ -36,13 +36,14 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
   
   	// Create random particles using guassian noise around initial estimate
   	for (int i=0; i<num_particles; i++) {
-      particles.push_back(Particle());
-      particles[i].id = i;
-      particles[i].x = dist_x(gen);
-      particles[i].y = dist_y(gen);
-      particles[i].theta = dist_theta(gen);
-      particles[i].weight = 1.0;
-      weights.push_back(particles[i].weight);
+      Particle p;
+      p.id = i;
+      p.x = dist_x(gen);
+      p.y = dist_y(gen);
+      p.theta = dist_theta(gen);
+      p.weight = 1.0;
+      
+      particles.push_back(p);
     }
   
   	// Initialized filter
