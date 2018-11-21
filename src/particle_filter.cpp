@@ -121,7 +121,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     vector<LandmarkObs> predictions;
     for (unsigned int j=0; j<map_landmarks.landmark_list.size(); j++) {
       // Landmark in sensor range
-      if (dist(p.x, map_landmarks.landmark_list[j].x_f, p.y, map_landmarks.landmark_list[j].y_f) <= sensor_range) {
+      if (dist(p.x, p.y, map_landmarks.landmark_list[j].x_f, map_landmarks.landmark_list[j].y_f) <= sensor_range) {
         LandmarkObs landmark = {map_landmarks.landmark_list[j].id_i, map_landmarks.landmark_list[j].x_f, map_landmarks.landmark_list[j].y_f};
         predictions.push_back(landmark);
       }
