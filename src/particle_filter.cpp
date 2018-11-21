@@ -44,6 +44,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
       p.weight = 1.0;
       
       particles.push_back(p);
+      weights.push_back(p.weight);
     }
   
   	// Initialized filter
@@ -111,49 +112,49 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   and the following is a good resource for the actual equation to implement (look at equation 
 	//   3.33
 	//   http://planning.cs.uiuc.edu/node99.html
-  for (int i=0; i<num_particles; i++) {
-    Particle p = particles[i];
-    
-    // Transform observations from particle coordinates to global map coordinates
-    vector<LandmarkObs> transformed_observations;
-    for (unsigned int j=0; j<observations.size(); j++) {
-      double t_x = p.x + cos(p.theta) * observations[j].x - sin(p.theta) * observations[j].y;
-      double t_y = p.y + sin(p.theta) * observations[j].x + cos(p.theta) * observations[j].y;
-
-      transformed_observations.push_back(LandmarkObs{observations[j].id, t_x, t_y});
-    }
-    
-    // Collect predicted landmarks
-    vector<LandmarkObs> predictions;
-    for (unsigned int j=0; j<map_landmarks.landmark_list.size(); j++) {
-      // Landmark in sensor range
-      if (dist(p.x, p.y, map_landmarks.landmark_list[j].x_f, map_landmarks.landmark_list[j].y_f) <= sensor_range) {
-        LandmarkObs landmark = {map_landmarks.landmark_list[j].id_i, map_landmarks.landmark_list[j].x_f, map_landmarks.landmark_list[j].y_f};
-        predictions.push_back(landmark);
-      }
-    }
-    
-    // Binds Landmark to Observations
-    dataAssociation(predictions, transformed_observations);
-    
-    particles[i].weight = 1.0;
-    for (unsigned j=0; j<transformed_observations.size(); j++) {
-      double o_x = transformed_observations[j].x;
-      double o_y = transformed_observations[j].y;
+  	for (int i=0; i<num_particles; i++) {
+      Particle p = particles[i];
       
-      for (unsigned k=0; k<predictions.size(); k++) {
-        double pr_x = predictions[k].x;
-        double pr_y = predictions[k].y;
-        
-        if (transformed_observations[j].id == predictions[k].id) {
-          double s_x = std_landmark[0];
-          double s_y = std_landmark[1];
-          double obs_w = (1 / (2*M_PI*s_x*s_y)) * exp(-( (pow(pr_x - o_x, 2)/(2*pow(s_x, 2))) + (pow(pr_y - o_y, 2)/(2*pow(s_y, 2))) ) ); 
-          particles[i].weight *= obs_w;
+      // Transform observations from particle coordinates to global map coordinates
+      vector<LandmarkObs> transformed_observations;
+      for (unsigned int j=0; j<observations.size(); j++) {
+        double t_x = p.x + cos(p.theta) * observations[j].x - sin(p.theta) * observations[j].y;
+        double t_y = p.y + sin(p.theta) * observations[j].x + cos(p.theta) * observations[j].y;
+
+        transformed_observations.push_back(LandmarkObs{observations[j].id, t_x, t_y});
+      }
+    
+      // Collect predicted landmarks
+      vector<LandmarkObs> predictions;
+      for (unsigned int j=0; j<map_landmarks.landmark_list.size(); j++) {
+        // Landmark in sensor range
+        if (dist(p.x, p.y, map_landmarks.landmark_list[j].x_f, map_landmarks.landmark_list[j].y_f) <= sensor_range) {
+          LandmarkObs landmark = {map_landmarks.landmark_list[j].id_i, map_landmarks.landmark_list[j].x_f, map_landmarks.landmark_list[j].y_f};
+          predictions.push_back(landmark);
+        }
+    
+        // Binds Landmark to Observations
+        dataAssociation(predictions, transformed_observations);
+
+        particles[i].weight = 1.0;
+        for (unsigned j=0; j<transformed_observations.size(); j++) {
+          double o_x = transformed_observations[j].x;
+          double o_y = transformed_observations[j].y;
+
+          for (unsigned k=0; k<predictions.size(); k++) {
+            double pr_x = predictions[k].x;
+            double pr_y = predictions[k].y;
+
+            if (transformed_observations[j].id == predictions[k].id) {
+              double s_x = std_landmark[0];
+              double s_y = std_landmark[1];
+              double obs_w = (1 / (2*M_PI*s_x*s_y)) * exp(-( (pow(pr_x - o_x, 2)/(2*pow(s_x, 2))) + (pow(pr_y - o_y, 2)/(2*pow(s_y, 2))) ) ); 
+              particles[i].weight *= obs_w;
+            }
+          }
         }
       }
     }
-  }
 }
 
 void ParticleFilter::resample() {
